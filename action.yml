@@ -1,5 +1,6 @@
 name: 'Drat upload'
-description: 'Upload an R package to a drat repository'
+author: 'Mike Mahoney (@mikemahoney218)'
+description: 'Upload an R package to a personal drat repository'
 inputs:
   package:
     description: 'The GitHub repository for the package to upload'
@@ -83,3 +84,6 @@ runs:
         git commit -am "${{ inputs.commit_message }}"         
         git push "https://${{ inputs.token }}@github.com/${{ inputs.drat_repo }}"
       shell: bash
+branding:
+  icon: 'box'  
+  color: 'purple'

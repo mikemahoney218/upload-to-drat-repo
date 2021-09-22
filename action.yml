@@ -22,6 +22,7 @@ inputs:
     description: "The commit message to use when updating the drat repo"
     required: true
     default: "Automated update"
+
 runs:
   using: "composite"
   steps:
@@ -39,9 +40,10 @@ runs:
     - uses: r-lib/actions/setup-r@v1
       with:
         r-version: 'release'
-          
+
     - run: |
-        R -e "install.packages('drat')"
+        R -e "install.packages(c('remotes', 'drat'))"
+        R -e "remotes::install_local('package', upgrade = 'always', quiet = TRUE)"
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
         R -e 'drat::updateRepo("drat")'

@@ -1,0 +1,52 @@
+name: 'Drat upload'
+description: 'Upload an R package to a drat repository'
+inputs:
+  package:
+    description: 'The GitHub repository for the package to upload'
+    default: ${{ github.repository }}
+    required: true
+  drat_repo:
+    description: "The GitHub repository for the drat repo to update"
+    required: true
+  token:
+    description: >
+      Personal access token (PAT) used to fetch the repository. The PAT is configured
+      with the local git config, which enables your scripts to run authenticated git
+      commands. The post-job step removes the PAT.
+      We recommend using a service account with the least permissions necessary.
+      Also when generating a new PAT, select the least scopes necessary.
+      [Learn more about creating and using encrypted secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
+    default: ${{ github.token }}
+    required: true
+  commit_message: 
+    description: "The commit message to use when updating the drat repo"
+    required: true
+    default: "Automated update"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        path: package
+        token: "${{ inputs.token }}"
+
+    - uses: actions/checkout@v2
+      with: 
+        repository: "${{ inputs.drat_repo }}"
+        token: "${{ inputs.token }}"
+        path: drat
+
+    - uses: r-lib/actions/setup-r@v1
+      with:
+        r-version: 'release'
+          
+    - run: |
+        R -e "install.packages('drat')"
+        R CMD build package
+        R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
+        R -e 'drat::updateRepo("drat")'
+        cd drat
+        git add .
+        git commit -am "${{ inputs.commit_message }}" 
+        git push "https://${{ inputs.token }}@github.com/${{ inputs.drat_repo }}"
+      shell: bash

@@ -42,8 +42,30 @@ runs:
         r-version: 'release'
 
     - run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+      shell: Rscript {0}
+
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.R_LIBS_USER }}
+        key: ubuntu-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+        restore-keys: ubuntu-${{ hashFiles('.github/R-version') }}-1-
+
+    - run: |
+        while read -r cmd
+        do
+          eval sudo $cmd
+        done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+      shell: bash
+
+    - run: |
+          remotes::install_deps(dependencies = TRUE)
+      shell: Rscript {0}
+
+    - run: |
         R -e "install.packages(c('remotes', 'drat'))"
-        R -e "remotes::install_local('package', upgrade = 'always', quiet = TRUE)"
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
         R -e 'drat::updateRepo("drat")'

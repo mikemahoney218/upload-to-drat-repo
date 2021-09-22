@@ -43,7 +43,7 @@ runs:
 
     - run: |
           install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          saveRDS(remotes::dev_package_deps("package", dependencies = TRUE), ".github/depends.Rds", version = 2)
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
       shell: Rscript {0}
 
@@ -57,15 +57,15 @@ runs:
         while read -r cmd
         do
           eval sudo $cmd
-        done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+        done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04", "package"))')
       shell: bash
 
     - run: |
-          remotes::install_deps(dependencies = TRUE)
+          remotes::install_deps("package", dependencies = TRUE)
       shell: Rscript {0}
 
     - run: |
-        R -e "install.packages(c('remotes', 'drat'))"
+        R -e "install.packages(c('drat'))"
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
         R -e 'drat::updateRepo("drat")'

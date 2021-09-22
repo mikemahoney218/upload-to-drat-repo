@@ -1,6 +1,6 @@
 # Automatically upload R packages to a {drat} repo
 
-This action checks out the git repo for an R package, builds it (via `R CMD build`), adds it to a [{drat}]() repository (via `drat::insertPackage` and `drat::updateRepo`), and then pushes that `drat` repo to GitHub.
+This action checks out the git repo for an R package, builds it (via `R CMD build`), adds it to a [{drat}](https://github.com/eddelbuettel/drat) repository (via `drat::insertPackage` and `drat::updateRepo`), and then pushes that `drat` repo to GitHub.
 
 This action accepts the following input parameters:
 

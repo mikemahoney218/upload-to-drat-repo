@@ -49,14 +49,37 @@ runs:
         r-version: 'release'
 
     - run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps("package", dependencies = TRUE), "package/.github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), "package/.github/R-version")
+      shell: Rscript {0}
+
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.R_LIBS_USER }}
+        key: ubuntu-${{ hashFiles('package/.github/R-version') }}-1-${{ hashFiles('package/.github/depends.Rds') }}
+        restore-keys: ubuntu-${{ hashFiles('package/.github/R-version') }}-1-
+
+    - run: |
+        while read -r cmd
+        do
+          eval sudo $cmd
+        done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04", "package"))')
+      shell: bash
+
+    - run: |
+          remotes::install_deps("package", dependencies = TRUE)
+      shell: Rscript {0}
+
+    - run: |
         R -e "install.packages(c('drat', 'knitr'))"
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
         R -e 'drat::updateRepo("drat")'
         cd drat
         git add .
-        git commit -am "${{ inputs.commit_message }}" 
         git config --global user.email "${{ inputs.commit_email }}"
         git config --global user.name "${{ inputs.commit_author }}"
+        git commit -am "${{ inputs.commit_message }}"         
         git push "https://${{ inputs.token }}@github.com/${{ inputs.drat_repo }}"
       shell: bash

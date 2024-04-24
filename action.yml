@@ -34,12 +34,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         path: package
         token: "${{ inputs.token }}"
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with: 
         repository: "${{ inputs.drat_repo }}"
         token: "${{ inputs.token }}"

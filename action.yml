@@ -30,7 +30,19 @@ inputs:
   commit_email: 
     description: "The email to associate the commit with"
     required: true
-
+  prune: 
+    description: >
+      Boolean: if `true`, this will run `pruneRepoForAllRversions()` after
+      updating the repository.
+    default: false
+    required: true
+  archive: 
+    description: >
+      Boolean: if `true`, this will run `archivePackages()` after
+      updating the repository.
+    default: false
+    required: true
+    
 runs:
   using: "composite"
   steps:
@@ -57,6 +69,12 @@ runs:
         R -e "pak::pkg_install(c('drat', 'knitr'))"
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
+        if [ "${{ inputs.archive }}" = 'true' ]; then
+          R -e 'drat::archivePackages("drat")'
+        fi
+        if [ "${{ inputs.prune }}" = 'true' ]; then
+          R -e 'drat::pruneRepoForAllRversions("drat")'
+        fi
         R -e 'drat::updateRepo("drat")'
         cd drat
         git add .

@@ -70,7 +70,7 @@ runs:
         R CMD build package
         R -e 'drat::insertPackage(list.files(pattern = ".tar.gz$")[[1]], "drat")'
         if [ "${{ inputs.archive }}" = 'true' ]; then
-          R -e 'drat::archivePackages("drat")'
+          R -e 'drat::archivePackagesForAllRversions("drat")'
         fi
         if [ "${{ inputs.prune }}" = 'true' ]; then
           R -e 'drat::pruneRepoForAllRversions("drat")'
